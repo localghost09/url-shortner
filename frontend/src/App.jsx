@@ -1,22 +1,21 @@
 import { useState } from "react";
 
-// In development (Vite) the server proxies /api to the backend, so we use a
-// relative path. In production (Vercel) there is no proxy, so point this at the
-// backend deployment (Render) via the VITE_API_BASE_URL env var.
-const API_BASE = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
-const API_URL = `${API_BASE}/api/urls`;
+// The app and the API are served from the same origin (the Render service):
+// the UI at /, the API at /api/urls, redirects at /<code>. A relative URL is
+// all we need — in development the Vite server proxies /api to Express.
+const API_URL = "/api/urls";
 
-// Build the short link from the URL the backend returns.
-// - In production the backend returns its own public host (Render), so we keep
-//   it exactly as-is — clicking it must reach the backend, not the frontend.
-// - In dev/preview the backend returns "localhost:5000/...", which isn't
-//   reachable from the user's browser, so we rewrite it to the app's origin.
+// Make the short link usable from the browser. The backend replies with the
+// host IT received the request on. Same-origin in production, so it is already
+// correct — but when the backend runs on localhost (e.g. Vite dev behind the
+// proxy) we rewrite it to the host this page is actually open on, because the
+// user's browser can't reach "localhost:5000" from a hosted preview.
 function toUsableShortUrl(shortUrl) {
   try {
     const url = new URL(shortUrl);
     const LOCAL_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0"];
     if (!LOCAL_HOSTS.includes(url.hostname)) {
-      return shortUrl; // production: trust the backend's public URL
+      return shortUrl; // production: same origin, trust it as-is
     }
     const code = url.pathname.split("/").filter(Boolean).pop();
     if (!code) return shortUrl;
@@ -64,7 +63,7 @@ export default function App() {
       setShortUrl(toUsableShortUrl(data.shortUrl));
     } catch (_) {
       setError(
-        "Could not reach the backend. Make sure the server is running on port 5000."
+        "Could not reach the backend API. Check that the server is running and deployed, then try again."
       );
     } finally {
       setLoading(false);
@@ -198,7 +197,7 @@ export default function App() {
               <li><strong>Backend:</strong> Node.js, Express</li>
               <li><strong>Database:</strong> MongoDB &amp; Mongoose</li>
               <li><strong>Frontend:</strong> React + Vite</li>
-              <li><strong>API:</strong> <code>POST /api/urls</code></li>
+              <li><strong>API:</strong> <code>POST /api/urls</code> on this same site</li>
             </ul>
           </div>
 
