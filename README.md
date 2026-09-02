@@ -16,7 +16,7 @@ anyone who opens the short link is redirected to the original.
 
 ```
 .
-├── server.js              # Express app + Mongo connection (port 5000)
+├── server.js              # Express app + Mongo connection + serves built frontend
 ├── controllers/           # Request handlers (create + redirect)
 │   └── urlController.js
 ├── models/                # Mongoose Url schema
@@ -31,7 +31,29 @@ anyone who opens the short link is redirected to the original.
         └── index.css      # Styling
 ```
 
-## Getting started
+## Deploying to Render (the whole app on one URL)
+
+Render serves **both the UI and the API** from a single web service, so
+`https://yourapp.onrender.com/` opens the app and `POST /api/urls` lives on
+that same origin — no CORS or extra environment variables needed.
+
+1. Push this repo to GitHub and create a new **Web Service** on Render.
+2. Connect the repo (during creation, when asked whether this is a
+   Blueprint/`render.yaml`, pick **Yes** — it already contains the right
+   build/start commands). If your service already exists, make sure its
+   settings match:
+   - **Build Command:** `npm install && npm run build:frontend`
+   - **Start Command:** `npm start`
+   - **Root Directory:** (empty — repository root)
+3. Add the env var **`MONGO_URI`** with your MongoDB connection string
+   (e.g. Atlas). `SHORT_URL_BASE` is optional — when unset, short links are
+   built from the request's own host, which is correct for this setup.
+4. Deploy. When it's live, `https://yourapp.onrender.com/` shows the app and
+   shortened links look like `https://yourapp.onrender.com/AbCdEf`.
+
+> The Render Blueprint in `render.yaml` does this automatically.
+
+## Getting started (local development)
 
 ### 1. Backend
 
@@ -45,11 +67,19 @@ Install and run:
 
 ```bash
 npm install
-npm start   # (add "start": "node server.js" if not present)
-# Server runs on http://localhost:5000
+npm start
+# API runs on http://localhost:5000
 ```
 
-### 2. Frontend
+To see the full app on port 5000 (not just the API), build the frontend once:
+
+```bash
+npm run build:frontend   # installs frontend deps + builds frontend/dist
+npm start
+# App:  http://localhost:5000
+```
+
+### 2. Frontend (dev mode with hot reload)
 
 ```bash
 cd frontend

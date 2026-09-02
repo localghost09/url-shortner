@@ -1,18 +1,24 @@
-# Render Blueprint — deploys the Node/Express backend.
-# The API runs at the repo root (server.js) and stays API-first; the React app
-# is deployed separately to Vercel.
+# Render Blueprint — one web service that serves BOTH the API and the built
+# React app from the same origin. Visiting https://<service>.onrender.com/
+# shows the app; API calls go to /api/urls on the same origin, so no CORS
+# setup or extra env vars are needed.
+#
+# Note: if your Render service was created manually (not via this Blueprint),
+# edit its "Build Command" in the dashboard to:
+#   npm install && npm run build:frontend
 services:
   - type: web
     name: url-shortner-api
     runtime: node
     plan: free
-    buildCommand: npm install
+    buildCommand: npm install && npm run build:frontend
     startCommand: npm start
     envVars:
       - key: MONGO_URI
         # Replace with your real MongoDB connection string (Atlas / local).
         sync: false
       - key: SHORT_URL_BASE
-        # Public base URL of THIS Render service, used to build short links.
-        # Render fills this in automatically once deployed; override if needed.
+        # Optional. Public base URL used when building short links. When unset,
+        # the backend uses the request's own host — which works out of the box
+        # when the app and API share this same domain.
         sync: false
