@@ -33,7 +33,7 @@ const createShortUrl = async(req , resp)=>{
             shortCode
         });
         resp.status(201).json({
-            originalUrl: url.origialUrl,
+            originalUrl: url.originalUrl,
             shortUrl: `http://localhost:5000/${url.shortCode}`
         });
 
