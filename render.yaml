@@ -1,0 +1,18 @@
+# Render Blueprint — deploys the Node/Express backend.
+# The API runs at the repo root (server.js) and stays API-first; the React app
+# is deployed separately to Vercel.
+services:
+  - type: web
+    name: url-shortner-api
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: MONGO_URI
+        # Replace with your real MongoDB connection string (Atlas / local).
+        sync: false
+      - key: SHORT_URL_BASE
+        # Public base URL of THIS Render service, used to build short links.
+        # Render fills this in automatically once deployed; override if needed.
+        sync: false

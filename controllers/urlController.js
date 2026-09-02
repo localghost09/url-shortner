@@ -1,6 +1,16 @@
 const Url = require("../models/Url");
 const generateCode = require("../utils/generateCode");
 
+// Base URL used to build short links. Prefer an explicit SHORT_URL_BASE env var
+// (e.g. your deployed domain); otherwise derive it from the incoming request so
+// it works on localhost, the preview host, or wherever the API is reachable.
+function shortUrlBase(req) {
+  if (process.env.SHORT_URL_BASE) {
+    return process.env.SHORT_URL_BASE.replace(/\/$/, "");
+  }
+  return `${req.protocol}://${req.get("host")}`;
+}
+
 const createShortUrl = async(req , resp)=>{
     try{
         const {originalUrl} = req.body;
@@ -33,8 +43,8 @@ const createShortUrl = async(req , resp)=>{
             shortCode
         });
         resp.status(201).json({
-            originalUrl: url.origialUrl,
-            shortUrl: `http://localhost:5000/${url.shortCode}`
+            originalUrl: url.originalUrl,
+            shortUrl: `${shortUrlBase(req)}/${url.shortCode}`
         });
 
 

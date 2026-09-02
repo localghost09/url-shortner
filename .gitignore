@@ -2,3 +2,6 @@ node_modules/
 .env
 frontend/node_modules/
 frontend/dist/
+
+# Sandbox-only preview helper (in-memory backend). Not part of the app.
+demo-server.cjs
