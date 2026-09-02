@@ -2,21 +2,19 @@ import { useState } from "react";
 
 const API_URL = "/api/urls";
 
-// If the backend hands us a localhost short URL, swap in the current host so
-// the link stays usable from wherever the app is being viewed (preview/local).
+// Build the short link from the origin the app is actually served from
+// (e.g. the live preview or localhost), so it points at the reachable host
+// instead of the backend's hardcoded "localhost:5000".
 function toUsableShortUrl(shortUrl) {
   try {
     const url = new URL(shortUrl);
-    const LOCAL_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0"];
-    if (LOCAL_HOSTS.includes(url.hostname)) {
-      url.host = window.location.host;
-      url.protocol = window.location.protocol;
-      return url.toString().replace(/\/$/, "");
-    }
+    const code = url.pathname.split("/").filter(Boolean).pop();
+    if (!code) return shortUrl;
+    return `${window.location.origin}/${code}`;
   } catch (_) {
     /* not a parseable URL — keep it as returned */
+    return shortUrl;
   }
-  return shortUrl;
 }
 
 export default function App() {
@@ -65,6 +63,19 @@ export default function App() {
 
   // Copy with a fallback for browsers/iframes that block the async Clipboard
   // API (e.g. the live preview). Falls back to a hidden textarea + execCommand.
+  // Open the short link. Default behaviour uses target="_blank", but iframes
+  // / preview sandboxes often block popups so nothing opens. Try a new tab
+  // first and fall back to navigating the current tab when that is blocked.
+  const openShortUrl = (event) => {
+    event.preventDefault();
+    const win = window.open(shortUrl, "_blank");
+    if (win) {
+      win.opener = null;
+    } else {
+      window.location.href = shortUrl;
+    }
+  };
+
   const copyToClipboard = async () => {
     const text = shortUrl;
     setError("");
@@ -150,7 +161,7 @@ export default function App() {
             <div className="result">
               <div className="result-label">Your short URL is ready 🎉</div>
               <div className="result-line">
-                <a href={shortUrl} target="_blank" rel="noreferrer">
+                <a href={shortUrl} onClick={openShortUrl} rel="noreferrer">
                   {shortUrl}
                 </a>
                 <button className="copy-btn" onClick={copyToClipboard}>
