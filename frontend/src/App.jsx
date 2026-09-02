@@ -63,14 +63,51 @@ export default function App() {
     }
   };
 
+  // Copy with a fallback for browsers/iframes that block the async Clipboard
+  // API (e.g. the live preview). Falls back to a hidden textarea + execCommand.
   const copyToClipboard = async () => {
+    const text = shortUrl;
+    setError("");
+
+    const fallbackCopy = () => {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "fixed";
+      textarea.style.top = "-9999px";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.select();
+      textarea.setSelectionRange(0, text.length);
+      let ok = false;
+      try {
+        ok = document.execCommand("copy");
+      } catch (_) {
+        ok = false;
+      }
+      document.body.removeChild(textarea);
+      return ok;
+    };
+
     try {
-      await navigator.clipboard.writeText(shortUrl);
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+        return;
+      }
+    } catch (_) {
+      // fall through to fallback
+    }
+
+    if (fallbackCopy()) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch (_) {
-      setError("Could not copy to clipboard.");
+      return;
     }
+
+    // Last resort: show the short URL so the user can select/copy it manually.
+    setError("Could not auto-copy. Please select the link below and copy it manually.");
   };
 
   return (
