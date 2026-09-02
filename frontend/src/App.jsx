@@ -1,13 +1,23 @@
 import { useState } from "react";
 
-const API_URL = "/api/urls";
+// In development (Vite) the server proxies /api to the backend, so we use a
+// relative path. In production (Vercel) there is no proxy, so point this at the
+// backend deployment (Render) via the VITE_API_BASE_URL env var.
+const API_BASE = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
+const API_URL = `${API_BASE}/api/urls`;
 
-// Build the short link from the origin the app is actually served from
-// (e.g. the live preview or localhost), so it points at the reachable host
-// instead of the backend's hardcoded "localhost:5000".
+// Build the short link from the URL the backend returns.
+// - In production the backend returns its own public host (Render), so we keep
+//   it exactly as-is — clicking it must reach the backend, not the frontend.
+// - In dev/preview the backend returns "localhost:5000/...", which isn't
+//   reachable from the user's browser, so we rewrite it to the app's origin.
 function toUsableShortUrl(shortUrl) {
   try {
     const url = new URL(shortUrl);
+    const LOCAL_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0"];
+    if (!LOCAL_HOSTS.includes(url.hostname)) {
+      return shortUrl; // production: trust the backend's public URL
+    }
     const code = url.pathname.split("/").filter(Boolean).pop();
     if (!code) return shortUrl;
     return `${window.location.origin}/${code}`;
