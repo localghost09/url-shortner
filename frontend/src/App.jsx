@@ -1,9 +1,9 @@
 import { useState } from "react";
 
-// The app and the API are served from the same origin (the Render service):
-// the UI at /, the API at /api/urls, redirects at /<code>. A relative URL is
-// all we need — in development the Vite server proxies /api to Express.
-const API_URL = "/api/urls";
+// Use the local Vite proxy by default. For a separately deployed frontend,
+// set VITE_API_BASE_URL to the public Render API URL at build time.
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
+const API_URL = `${API_BASE_URL}/api/urls`;
 
 // Make the short link usable from the browser. The backend replies with the
 // host IT received the request on. Same-origin in production, so it is already
