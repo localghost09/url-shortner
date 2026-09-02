@@ -61,6 +61,7 @@ export default function App() {
       }
 
       setShortUrl(toUsableShortUrl(data.shortUrl));
+      setOriginalUrl("");
     } catch (_) {
       setError(
         "Could not reach the backend API. Check that the server is running and deployed, then try again."
@@ -135,12 +136,12 @@ export default function App() {
       <header className="header">
         <div className="container">
           <div className="brand">
-            <span className="logo">🔗</span>
-            <h1>URL Shortener</h1>
+            <div className="brand-mark">
+              <span className="logo">🔗</span>
+              <h1>URL Shortener</h1>
+            </div>
+            <span className="header-note">Fast links, less clutter</span>
           </div>
-          <p className="tagline">
-            Turn long, messy links into short, shareable ones in a click.
-          </p>
         </div>
       </header>
 
